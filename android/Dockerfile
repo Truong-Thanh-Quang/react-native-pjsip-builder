@@ -7,7 +7,9 @@ FROM ubuntu:latest
 RUN dpkg --add-architecture i386 && \
     apt-get -y upgrade && \
     apt-get -y dist-upgrade && \
-    apt-get update
+    apt-get update && \
+	apt-get -y install libpcre3 libpcre3-dev && \
+	apt-get -y install libpcre2-dev
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
     software-properties-common git curl bzip2 gcc g++ binutils make autoconf openssl \
@@ -20,22 +22,22 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
 
 # ENV TARGET_ARCHS "armeabi armeabi-v7a x86 mips arm64-v8a x86_64 mips64"
 ENV TARGET_ARCHS "armeabi-v7a x86 arm64-v8a x86_64" 
-ENV ANDROID_NDK_DOWNLOAD_URL "https://dl.google.com/android/repository/android-ndk-r12b-linux-x86_64.zip"
+ENV ANDROID_NDK_DOWNLOAD_URL "https://dl.google.com/android/repository/android-ndk-r25b-linux.zip"
 ENV ANDROID_SDK_DOWNLOAD_URL "https://dl.google.com/android/repository/tools_r25.2.5-linux.zip"
 ENV ANDROID_SETUP_APIS "23 25"
 ENV ANDROID_BUILD_TOOLS_VERSION 25
 ENV ANDROID_TARGET_API 23
 
-ENV PJSIP_DOWNLOAD_URL "http://www.pjsip.org/release/2.7.1/pjproject-2.7.1.tar.bz2"
+ENV PJSIP_DOWNLOAD_URL "https://github.com/pjsip/pjproject/archive/refs/tags/2.12.1.tar.gz"
 
-ENV SWIG_DOWNLOAD_URL "http://prdownloads.sourceforge.net/swig/swig-3.0.7.tar.gz"
+ENV SWIG_DOWNLOAD_URL "http://prdownloads.sourceforge.net/swig/swig-4.1.0.tar.gz"
 
-ENV OPENSSL_DOWNLOAD_URL "https://www.openssl.org/source/openssl-1.0.2g.tar.gz"
+ENV OPENSSL_DOWNLOAD_URL "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.0.7.tar.gz"
 
-ENV OPENH264_DOWNLOAD_URL "https://github.com/cisco/openh264/archive/v1.7.0.tar.gz"
+ENV OPENH264_DOWNLOAD_URL "https://github.com/cisco/openh264/archive/v2.3.1.tar.gz"
 ENV OPENH264_TARGET_NDK_LEVEL 23
 
-ENV OPUS_DOWNLOAD_URL "http://downloads.xiph.org/releases/opus/opus-1.2.1.tar.gz"
+ENV OPUS_DOWNLOAD_URL "https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz"
 ENV OPUS_ANDROID_MK_DOWNLOAD_URL "https://trac.pjsip.org/repos/raw-attachment/ticket/1904/Android.mk"
 
 ENV PATH /sources/android_ndk:$PATH
@@ -59,6 +61,8 @@ RUN cd /sources/android_ndk && \
     rm -rf ndk.zip && \
     mv android-*/* ./
 
+RUN sed -i 's/APP_STL := $(strip $(APP_STL))/APP_STL := c++_static/g' /sources/android_ndk/build/core/add-application.mk
+
 # Download Android SDK & APIs
 RUN cd /sources/android_sdk && \
     curl -L -# -o sdk.zip "$ANDROID_SDK_DOWNLOAD_URL" && \
@@ -79,9 +83,9 @@ RUN cd /sources/android_sdk/tools && \
 
 # Download Pjsip
 RUN cd /sources/pjsip && \
-    curl -L -# -o pjsip.tar.bz2 "$PJSIP_DOWNLOAD_URL" && \
-    tar xjf pjsip.tar.bz2 && \
-    rm -rf pjsip.tar.bz2 && \
+    curl -L -# -o pjsip.tar.gz "$PJSIP_DOWNLOAD_URL" && \
+    tar -xzvf pjsip.tar.gz && \
+    rm -rf pjsip.tar.gz && \
     mv pjproject-*/* ./
 
 # Download Swig
