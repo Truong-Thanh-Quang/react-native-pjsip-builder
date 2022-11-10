@@ -3,7 +3,8 @@ set -e
 
 TARGET_ARCH=$1
 TARGET_PATH=/output/pjsip/${TARGET_ARCH}
-cp -r /sources/pjsip /tmp/pjsip
+mkdir -p /tmp/
+cp -r /sources/pjsip /tmp/
 
 # TODO: Use flags like in vialerpjsip for config.h
 cat <<EOF > "/tmp/pjsip/pjlib/include/pj/config_site.h"
@@ -13,7 +14,7 @@ cat <<EOF > "/tmp/pjsip/pjlib/include/pj/config_site.h"
 #include <pj/config_site_sample.h>
 #define PJMEDIA_HAS_VIDEO 1
 #define PJMEDIA_AUDIO_DEV_HAS_ANDROID_JNI 0
-#define PJMEDIA_AUDIO_DEV_HAS_OPENSL 1
+#define PJMEDIA_AUDIO_DEV_HAS_OPENSL 0
 #define PJSIP_AUTH_AUTO_SEND_NEXT 0
 EOF
 

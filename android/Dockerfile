@@ -7,14 +7,12 @@ FROM ubuntu:latest
 RUN dpkg --add-architecture i386 && \
     apt-get -y upgrade && \
     apt-get -y dist-upgrade && \
-    apt-get update && \
-	apt-get -y install libpcre3 libpcre3-dev && \
-	apt-get -y install libpcre2-dev
+    apt-get update
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
     software-properties-common git curl bzip2 gcc g++ binutils make autoconf openssl \
     libssl-dev ant libopus0 libpcre3 libpcre3-dev build-essential nasm libc6:i386 libstdc++6:i386 zlib1g:i386 \
-    openjdk-8-jdk unzip
+    openjdk-8-jdk unzip apt-utils libperl-dev libpcre2-dev
 
 ##############################
 # Configuration
@@ -22,7 +20,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
 
 # ENV TARGET_ARCHS "armeabi armeabi-v7a x86 mips arm64-v8a x86_64 mips64"
 ENV TARGET_ARCHS "armeabi-v7a x86 arm64-v8a x86_64" 
-ENV ANDROID_NDK_DOWNLOAD_URL "https://dl.google.com/android/repository/android-ndk-r19c-linux-x86_64.zip"
+ENV ANDROID_NDK_DOWNLOAD_URL "https://dl.google.com/android/repository/android-ndk-r25b-linux.zip"
 ENV ANDROID_SDK_DOWNLOAD_URL "https://dl.google.com/android/repository/tools_r25.2.5-linux.zip"
 ENV ANDROID_SETUP_APIS "23 25"
 ENV ANDROID_BUILD_TOOLS_VERSION 25
@@ -144,12 +142,32 @@ RUN cd /sources/swig && \
 
 # Build OpenH264
 # RUN sed -i '/UTSHLDFLAGS =/a NDK_TOOLCHAIN_VERSION = clang' /sources/openh264/build/platform-android.mk
-ADD ./build_openh264.sh /usr/local/sbin/
-RUN IFS=" " && \
-    for arch in $TARGET_ARCHS; \
-    do \
-      build_openh264.sh ${arch}; \
-    done
+#ADD ./build_openh264.sh /usr/local/sbin/
+#RUN IFS=" " && \
+#    for arch in $TARGET_ARCHS; \
+#    do \
+#      build_openh264.sh ${arch}; \
+#    done
+
+# Download openh264
+RUN mkdir -p /output/openh264/armeabi-v7a/ && \
+    mkdir -p /output/openh264/x86/ && \
+    mkdir -p /output/openh264/arm64-v8a/ && \
+    mkdir -p /output/openh264/x86_64/
+
+RUN cd /output/openh264/armeabi-v7a/ && \
+    curl -L -# -o libopenh264-2.3.1.so.bz2 http://ciscobinary.openh264.org/libopenh264-2.3.1-android-arm.7.so.bz2 && \
+	bzip2 -d -f libopenh264-2.3.1.so.bz2 && \
+	cd /output/openh264/arm64-v8a/ && \
+	curl -L -# -o libopenh264-2.3.1.so.bz2 http://ciscobinary.openh264.org/libopenh264-2.3.1-android-arm64.7.so.bz2 && \
+	bzip2 -d -f libopenh264-2.3.1.so.bz2 && \
+	cd /output/openh264/x86/ && \
+	curl -L -# -o libopenh264-2.3.1.so.bz2 http://ciscobinary.openh264.org/libopenh264-2.3.1-android-x86.7.so.bz2 && \
+	bzip2 -d -f libopenh264-2.3.1.so.bz2 && \
+	cd /output/openh264/x86_64/ && \
+	curl -L -# -o libopenh264-2.3.1.so.bz2 http://ciscobinary.openh264.org/libopenh264-2.3.1-android-x64.7.so.bz2 && \
+    bzip2 -d -f libopenh264-2.3.1.so.bz2
+
 
 # Build openssl
 #ADD ./build_openssl.sh /usr/local/sbin/
